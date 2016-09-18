@@ -1,0 +1,95 @@
+// Within "widths" and "heights", you can have an arbitrary number of breakpoints listed
+// with whatever naming you like.
+$breakpoints: (
+  widths: (
+    xnarrow: 0em,
+    narrow: 40em,
+    medium: 50em,
+    wide: 64em,
+    xwide: 80em
+  ),
+  heights: (
+    short: 0em,
+    middle: 35.5em,
+    tall: 48em
+  )
+);
+
+// Behind the curtain stuffs
+@function _is_width($word) {
+  @each $key in map-keys(map-get($breakpoints, widths)) {
+    @if ($key == $word) {
+      @return true;
+    }
+  }
+  @return false;
+}
+
+@function _is_height($word) {
+  @each $key in map-keys(map-get($breakpoints, heights)) {
+    @if ($key == $word) {
+      @return true;
+    } 
+  }
+  @return false;
+}
+
+@function _horizontal_query($breakpoint) {
+  $breakpoints--horizontal: map-get($breakpoints, widths);
+  @if length($breakpoint) > 1 {
+    @if nth($breakpoint, 2) == 'only' {
+      $limit--bottom: map-get($breakpoints--horizontal, nth($breakpoint, 1));
+      $breakpoint-keys: map-keys($breakpoints--horizontal);
+      $index--bottom: index($breakpoint-keys, nth($breakpoint, 1));
+      @if $index--bottom < length($breakpoints--horizontal) {
+        $index--top: nth($breakpoints--horizontal, $index--bottom + 1);
+        $limit--top: nth($index--top, 2) - 0.01em;
+        @return ' and (min-width: #{$limit--bottom}) and (max-width: #{$limit--top})';
+      } @else {
+        @return ' and (min-width: #{$limit--bottom})';
+      }
+    }
+  } @else {
+    $limit: map-get($breakpoints--horizontal, $breakpoint);
+    @return ' and (min-width: #{$limit})';
+  }
+}
+
+@function _vertical_query($breakpoint) {
+  $breakpoints--vertical: map-get($breakpoints, heights);
+  @if length($breakpoint) > 1 {
+    @if nth($breakpoint, 2) == 'only' {
+      $limit--bottom: map-get($breakpoints--vertical, nth($breakpoint, 1));
+      $breakpoint-keys: map-keys($breakpoints--vertical);
+      $index--bottom: index($breakpoint-keys, nth($breakpoint, 1));
+      @if $index--bottom < length($breakpoints--vertical) {
+        $index--top: nth($breakpoints--vertical, $index--bottom + 1);
+        $limit--top: nth($index--top, 2) - 0.01em;
+        @return ' and (min-height: #{$limit--bottom}) and (max-height: #{$limit--top})';
+      } @else {
+        @return ' and (min-height: #{$limit--bottom})';
+      }
+    }
+  } @else {
+    $limit: map-get($breakpoints--vertical, $breakpoint);
+    @return ' and (min-height: #{$limit})';
+  }
+}
+
+// Syntax is to put in a number of keywords that correspond to your $breakpoints names
+// e.g. @include view(narrow only, tall);
+// The name alone assumes "and up". Appending "only" applies the styles up to, but not including, 
+// the next breakpoint.
+@mixin view($breakpoints...) {
+  $mq: '';
+  @each $breakpoint in $breakpoints {
+    @if _is_width(nth($breakpoint, 1)) {
+      $mq: str_insert($mq, #{_horizontal_query($breakpoint)}, str_length($mq) + 1);
+    } @else if _is_height(nth($breakpoint, 1)) {
+      $mq: str_insert($mq, #{_vertical_query($breakpoint)}, str_length($mq) + 1);
+    }
+  }
+  @media screen #{$mq} {
+    @content;
+  }
+}
