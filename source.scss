@@ -77,7 +77,7 @@ $breakpoints: (
 }
 
 // Syntax is to put in a number of keywords that correspond to your $breakpoints names
-// e.g. @include view(narrow only, tall);
+// e.g. @include view(narrow only, tall) {…
 // The name alone assumes "and up". Appending "only" applies the styles up to, but not including, 
 // the next breakpoint.
 @mixin view($breakpoints...) {
