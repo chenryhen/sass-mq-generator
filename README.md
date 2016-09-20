@@ -40,3 +40,5 @@ outputs
    }
 }
 ```
+
+Natural language instead of comma separators would be nice, but sass likes to choke on the keyword `and`. I might experiment with an ampersand though (e.g. `short & wide only`)
